@@ -18,6 +18,7 @@
     .player-entry {
       display: flex;
       justify-content: center;
+      align-items: center;
       gap: 1rem;
       margin-bottom: 0.5rem;
     }
@@ -46,6 +47,23 @@
       margin-top: 2rem;
       font-size: 1.2rem;
     }
+    .bar-container {
+      margin: 0.25rem 0;
+      background-color: #eee;
+      border-radius: 10px;
+      overflow: hidden;
+      width: 60%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .bar {
+      height: 24px;
+      background-color: #4CAF50;
+      color: white;
+      text-align: right;
+      padding-right: 0.5rem;
+      line-height: 24px;
+    }
   </style>
 </head>
 <body>
@@ -67,40 +85,40 @@
       div.className = 'player-entry';
       div.innerHTML = `
         <input type="text" placeholder="Nom du joueur" />
-        <input type="number" placeholder="Score" min="0" />
+        <input type="number" placeholder="Score" min="0" oninput="updateBars()" />
       `;
       container.appendChild(div);
     }
 
-    function showPodium() {
-      const entries = document.querySelectorAll('.player-entry');
-      const players = [];
-      entries.forEach(entry => {
+    function updateBars() {
+      const entries = Array.from(document.querySelectorAll('.player-entry'));
+      const players = entries.map(entry => {
         const name = entry.querySelector('input[type="text"]').value.trim();
         const score = parseInt(entry.querySelector('input[type="number"]').value);
-        if (name && !isNaN(score)) {
-          players.push({ name, score });
-        }
-      });
+        return name && !isNaN(score) ? { name, score } : null;
+      }).filter(Boolean);
+
+      if (players.length === 0) return;
+
+      const maxScore = Math.max(...players.map(p => p.score)) || 1;
       players.sort((a, b) => b.score - a.score);
+
       const podium = document.getElementById('podium');
-      if (players.length === 0) {
-        podium.innerHTML = '<p>Aucun joueur valide.</p>';
-        return;
-      }
-      let html = '<h2>🏆 Podium</h2><ol>';
-      players.slice(0, 3).forEach(player => {
-        html += `<li>${player.name} - ${player.score} pts</li>`;
+      let html = '<h2>📊 Classement en temps réel</h2>';
+      players.forEach(player => {
+        const width = (player.score / maxScore * 100).toFixed(2);
+        html += `
+          <div><strong>${player.name} - ${player.score} pts</strong></div>
+          <div class="bar-container">
+            <div class="bar" style="width: ${width}%">${player.score}</div>
+          </div>
+        `;
       });
-      html += '</ol>';
-      if (players.length > 3) {
-        html += '<p>Autres scores :</p><ul>';
-        players.slice(3).forEach(player => {
-          html += `<li>${player.name} - ${player.score} pts</li>`;
-        });
-        html += '</ul>';
-      }
       podium.innerHTML = html;
+    }
+
+    function showPodium() {
+      updateBars();
     }
 
     function resetScores() {
@@ -117,7 +135,6 @@
     }
 
     function printPodium() {
-      const originalContent = document.body.innerHTML;
       const podiumContent = document.getElementById('podium').innerHTML;
       if (!podiumContent.trim()) {
         alert("Aucun podium à imprimer.");
