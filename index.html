@@ -5,107 +5,173 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Scoreur de Jeu</title>
   <style>
+    :root {
+      --primary: #4CAF50;
+      --light-bg: #f1f8f5;
+      --border: #ccc;
+      --font: 'Segoe UI', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: 'Arial', sans-serif;
+      font-family: var(--font);
       background: linear-gradient(to right, #a1c4fd, #c2e9fb);
-      padding: 2rem;
+      margin: 0;
+      padding: 1rem;
       color: #333;
-      text-align: center;
     }
+
     h1 {
+      text-align: center;
       margin-bottom: 1rem;
     }
-    .player-entry {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.5rem;
+
+    .section {
+      max-width: 800px;
+      margin: auto;
+      background-color: white;
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .settings, .buttons, .player-entry, .bar-container {
       margin-bottom: 1rem;
     }
-    .player-line {
-      display: flex;
-      gap: 0.5rem;
+
+    label {
+      font-weight: bold;
+      margin-right: 0.5rem;
     }
-    .player-entry input[type="text"],
-    .player-entry input[type="number"],
-    .player-entry input.tour {
+
+    input[type="text"],
+    input[type="number"] {
       padding: 0.5rem;
       border-radius: 8px;
-      border: 1px solid #ccc;
+      border: 1px solid var(--border);
+      width: 100%;
+      max-width: 180px;
     }
+
+    input.tour {
+      width: 100%;
+      max-width: 250px;
+    }
+
+    .player-entry {
+      background-color: var(--light-bg);
+      border-radius: 8px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .player-line {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      width: 100%;
+      align-items: center;
+    }
+
     .buttons {
-      margin-top: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
     }
+
     button {
-      background-color: #4CAF50;
+      background-color: var(--primary);
       color: white;
       border: none;
       padding: 0.5rem 1rem;
       border-radius: 8px;
       cursor: pointer;
-      margin: 0.25rem;
+      transition: background 0.3s;
     }
+
     button:hover {
-      background-color: #45a049;
+      background-color: #3d9442;
     }
+
     .bar-container {
       background-color: #eee;
       border-radius: 10px;
       overflow: hidden;
-      width: 60%;
-      margin: 0.25rem auto;
+      width: 100%;
+      max-width: 600px;
+      margin: auto;
       display: flex;
       align-items: center;
     }
+
     .bar {
       height: 24px;
-      background-color: #4CAF50;
+      background-color: var(--primary);
       color: white;
-      text-align: left;
       padding-left: 0.5rem;
       line-height: 24px;
       display: flex;
       align-items: center;
       white-space: nowrap;
     }
+
     .historique {
-      display: none;
       font-size: 0.9rem;
-      margin-top: 0.25rem;
-      color: #333;
+      color: #555;
+      display: none;
     }
-    #tourDisplay {
-      font-weight: bold;
-      margin: 1rem 0;
+
+    .classement {
+      text-align: center;
+    }
+
+    @media (max-width: 600px) {
+      .player-line {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      input[type="text"],
+      input[type="number"],
+      input.tour {
+        max-width: 100%;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>Scoreur de Jeu</h1>
-
-  <div>
-    <label for="scoreMax">Score maximum à atteindre : </label>
-    <input id="scoreMax" type="number" value="100" />
-    <div id="tourDisplay">Tour : 1</div>
-    <button onclick="nextTour()">+1 tour</button>
-    <button onclick="toggleHistorique()">👁️ Voir l'historique</button>
-  </div>
-
-  <div id="jeu">
-    <div id="players"></div>
-    <div class="buttons">
-      <button onclick="addPlayer()">Ajouter un joueur</button>
-      <button onclick="updateScores()">Valider tour</button>
-      <button onclick="showPodium()">🏁 Afficher classement</button>
-      <button onclick="resetScores()">🔄 Réinitialiser les scores</button>
-      <button onclick="clearAll()">🗑️ Supprimer tous les joueurs</button>
+  <h1>🎲 Scoreur de Jeu</h1>
+  <div class="section" id="jeu">
+    <div class="settings">
+      <label for="scoreMax">Score maximum à atteindre :</label>
+      <input id="scoreMax" type="number" value="100" />
+      <div><strong>Tour :</strong> <span id="tourDisplay">1</span></div>
     </div>
+
+    <div class="buttons">
+      <button onclick="addPlayer()">➕ Ajouter un joueur</button>
+      <button onclick="updateScores()">✅ Valider tour</button>
+      <button onclick="nextTour()">🔁 +1 tour</button>
+      <button onclick="toggleHistorique()">👁️ Historique</button>
+      <button onclick="showPodium()">🏁 Voir classement</button>
+      <button onclick="resetScores()">🔄 Réinitialiser</button>
+      <button onclick="clearAll()">🗑️ Supprimer tous</button>
+    </div>
+
+    <div id="players"></div>
   </div>
 
-  <div id="podium" style="display: none;">
+  <div class="section classement" id="podium" style="display: none;">
     <div class="buttons">
-      <button onclick="returnToGame()">🔙 Retour à la saisie</button>
-      <button onclick="resetScores()">🔄 Réinitialiser les scores</button>
+      <button onclick="returnToGame()">🔙 Retour</button>
+      <button onclick="resetScores()">🔄 Réinitialiser</button>
     </div>
     <div id="classementContent"></div>
   </div>
@@ -139,13 +205,14 @@
         let addition = 0;
         try {
           addition = eval(tourInput.value.replace(/[^-()\d/*+.]/g, ''));
-        } catch (e) {
+        } catch {
           alert("Erreur dans le calcul pour un joueur.");
           return;
         }
 
         const newScore = parseFloat(scoreInput.value) + addition;
         scoreInput.value = newScore;
+        tourInput.value = ""; // vider le champ de calcul
 
         if (!entry.dataset.history) entry.dataset.history = "[]";
         const history = JSON.parse(entry.dataset.history);
@@ -156,9 +223,9 @@
       });
 
       currentTour++;
-      document.getElementById('tourDisplay').textContent = `Tour : ${currentTour}`;
+      document.getElementById('tourDisplay').textContent = currentTour;
 
-      // Réorganiser les joueurs dans l'ordre du score décroissant
+      // Réorganiser les joueurs selon leur score
       const playerContainer = document.getElementById('players');
       const sorted = Array.from(playerContainer.children).sort((a, b) => {
         const scoreA = parseFloat(a.querySelector('input[type="number"]').value);
@@ -171,16 +238,15 @@
     function updateHistorique(entry) {
       const historyDiv = entry.querySelector('.historique');
       const history = JSON.parse(entry.dataset.history || "[]");
-      if (!showHistory) {
-        historyDiv.style.display = "none";
-        return;
+      historyDiv.style.display = showHistory ? "block" : "none";
+
+      if (showHistory) {
+        let html = '<strong>Historique :</strong><br>';
+        history.forEach(h => {
+          html += `Tour ${h.tour} : ${h.valeur}<br>`;
+        });
+        historyDiv.innerHTML = html;
       }
-      let html = '<strong>Historique des tours :</strong><br>';
-      history.forEach(h => {
-        html += `Tour ${h.tour} : ${h.valeur}<br>`;
-      });
-      historyDiv.innerHTML = html;
-      historyDiv.style.display = "block";
     }
 
     function toggleHistorique() {
@@ -190,7 +256,7 @@
 
     function nextTour() {
       currentTour++;
-      document.getElementById('tourDisplay').textContent = `Tour : ${currentTour}`;
+      document.getElementById('tourDisplay').textContent = currentTour;
     }
 
     function updateBars() {
@@ -238,9 +304,10 @@
         entry.querySelector('input[type="number"]').value = '0';
         entry.dataset.history = "[]";
         updateHistorique(entry);
+        entry.querySelector('input.tour').value = '';
       });
       currentTour = 1;
-      document.getElementById('tourDisplay').textContent = `Tour : 1`;
+      document.getElementById('tourDisplay').textContent = '1';
     }
 
     function clearAll() {
