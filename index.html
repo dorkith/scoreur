@@ -54,14 +54,19 @@
       overflow: hidden;
       width: 60%;
       margin: 0.25rem auto;
+      display: flex;
+      align-items: center;
     }
     .bar {
       height: 24px;
       background-color: #4CAF50;
       color: white;
-      text-align: right;
-      padding-right: 0.5rem;
+      text-align: left;
+      padding-left: 0.5rem;
       line-height: 24px;
+      display: flex;
+      align-items: center;
+      white-space: nowrap;
     }
     .historique {
       display: none;
@@ -125,7 +130,7 @@
     }
 
     function updateScores() {
-      const entries = document.querySelectorAll('.player-entry');
+      const entries = Array.from(document.querySelectorAll('.player-entry'));
       entries.forEach(entry => {
         const scoreInput = entry.querySelector('input[type="number"]');
         const tourInput = entry.querySelector('input.tour');
@@ -135,19 +140,32 @@
         try {
           addition = eval(tourInput.value.replace(/[^-()\d/*+.]/g, ''));
         } catch (e) {
-          alert("Erreur dans le calcul, vérifie la syntaxe.");
-          addition = 0;
+          alert("Erreur dans le calcul pour un joueur.");
+          return;
         }
 
         const newScore = parseFloat(scoreInput.value) + addition;
         scoreInput.value = newScore;
+
         if (!entry.dataset.history) entry.dataset.history = "[]";
         const history = JSON.parse(entry.dataset.history);
         history.push({ tour: currentTour, valeur: addition });
         entry.dataset.history = JSON.stringify(history);
-        tourInput.value = '';
+
         updateHistorique(entry);
       });
+
+      currentTour++;
+      document.getElementById('tourDisplay').textContent = `Tour : ${currentTour}`;
+
+      // Réorganiser les joueurs dans l'ordre du score décroissant
+      const playerContainer = document.getElementById('players');
+      const sorted = Array.from(playerContainer.children).sort((a, b) => {
+        const scoreA = parseFloat(a.querySelector('input[type="number"]').value);
+        const scoreB = parseFloat(b.querySelector('input[type="number"]').value);
+        return scoreB - scoreA;
+      });
+      sorted.forEach(el => playerContainer.appendChild(el));
     }
 
     function updateHistorique(entry) {
@@ -193,9 +211,10 @@
       players.forEach(player => {
         const width = Math.min((player.score / maxTarget) * 100, 100).toFixed(2);
         html += `
-          <div><strong>${player.name} - ${player.score} pts</strong></div>
           <div class="bar-container">
-            <div class="bar" style="width: ${width}%">${player.score}</div>
+            <div class="bar" style="width: ${width}%">
+              ${player.name} - ${player.score} pts
+            </div>
           </div>
         `;
       });
@@ -217,7 +236,6 @@
       const entries = document.querySelectorAll('.player-entry');
       entries.forEach(entry => {
         entry.querySelector('input[type="number"]').value = '0';
-        entry.querySelector('input.tour').value = '';
         entry.dataset.history = "[]";
         updateHistorique(entry);
       });
