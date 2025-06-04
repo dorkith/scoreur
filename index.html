@@ -108,7 +108,7 @@
       overflow: hidden;
       width: 100%;
       max-width: 600px;
-      margin: 1rem auto;
+      margin: 0.5rem auto;
       display: flex;
       align-items: center;
       position: relative;
@@ -122,6 +122,8 @@
       align-items: center;
       white-space: nowrap;
       transition: width 0.5s ease;
+      background-color: var(--primary);
+      color: white;
     }
 
     .bar.negative {
@@ -233,6 +235,7 @@
           <input type="number" placeholder="Score total" value="0" />
           <input type="text" class="tour" placeholder="Calcul du tour (ex: 5+5-2)" />
         </div>
+        <div class="bar-container"><div class="bar" style="width: 0%">0</div></div>
         <div class="historique"></div>
       `;
       container.appendChild(div);
@@ -275,6 +278,32 @@
         return scoreB - scoreA;
       });
       sorted.forEach(el => playerContainer.appendChild(el));
+
+      renderBars();
+    }
+
+    function renderBars() {
+      const maxScore = parseFloat(document.getElementById('scoreMax').value) || 100;
+      document.querySelectorAll('.player-entry').forEach(entry => {
+        const name = entry.querySelector('input[type="text"]').value || "Joueur";
+        const score = parseFloat(entry.querySelector('input[type="number"]').value) || 0;
+        const bar = entry.querySelector('.bar');
+
+        if (!bar) return;
+
+        let percent = Math.abs(score) / maxScore * 100;
+        percent = Math.min(percent, 100);
+
+        bar.textContent = `${name} : ${score}`;
+        bar.style.width = `${percent}%`;
+
+        bar.className = 'bar';
+        if (score < 0) {
+          bar.classList.add('negative');
+        } else if (score > maxScore) {
+          bar.classList.add('overflow');
+        }
+      });
     }
 
     function updateHistorique(entry) {
@@ -299,6 +328,12 @@
     function nextTour() {
       currentTour++;
       document.getElementById('tourDisplay').textContent = currentTour;
+    }
+
+    function showPodium() {
+      updateBars();
+      document.getElementById('jeu').style.display = 'none';
+      document.getElementById('podium').style.display = 'block';
     }
 
     function updateBars() {
@@ -335,12 +370,6 @@
         `;
       });
       classement.innerHTML = html;
-    }
-
-    function showPodium() {
-      updateBars();
-      document.getElementById('jeu').style.display = 'none';
-      document.getElementById('podium').style.display = 'block';
     }
 
     function finishGame() {
@@ -380,6 +409,7 @@
       });
       currentTour = 1;
       document.getElementById('tourDisplay').textContent = '1';
+      renderBars();
     }
 
     function clearAll() {
@@ -390,7 +420,3 @@
   </script>
 </body>
 </html>
-function updateScores() {
-  // ... (votre logique existante)
-  renderBars(); // <--- à ajouter
-}
