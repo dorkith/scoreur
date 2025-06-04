@@ -1,19 +1,395 @@
-function addPlayer() {
-  const container = document.getElementById('players');
-  const div = document.createElement('div');
-  div.className = 'player-entry';
-  div.innerHTML = `
-    <div class="player-line">
-      <input type="text" placeholder="Nom du joueur" />
-      <input type="number" placeholder="Score total" value="0" />
-      <input type="text" class="tour" placeholder="Calcul du tour (ex: 5+5-2)" />
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Scoreur de Jeu</title>
+  <style>
+    :root {
+      --primary: #4CAF50;
+      --light-bg: #f1f8f5;
+      --border: #ccc;
+      --font: 'Segoe UI', sans-serif;
+      --negative: #e74c3c;
+      --overflow: #9b59b6;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font);
+      background: linear-gradient(to right, #a1c4fd, #c2e9fb);
+      margin: 0;
+      padding: 1rem;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .section {
+      max-width: 800px;
+      margin: auto;
+      background-color: white;
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .settings, .buttons, .player-entry, .bar-container {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      font-weight: bold;
+      margin-right: 0.5rem;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      padding: 0.5rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      width: 100%;
+      max-width: 180px;
+    }
+
+    input.tour {
+      width: 100%;
+      max-width: 250px;
+    }
+
+    .player-entry {
+      background-color: var(--light-bg);
+      border-radius: 8px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .player-line {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      width: 100%;
+      align-items: center;
+    }
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+
+    button {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background-color: #3d9442;
+    }
+
+    .bar-container {
+      background-color: #eee;
+      border-radius: 10px;
+      overflow: hidden;
+      width: 100%;
+      max-width: 600px;
+      margin: 1rem auto;
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+
+    .bar {
+      height: 24px;
+      padding-left: 0.5rem;
+      line-height: 24px;
+      display: flex;
+      align-items: center;
+      white-space: nowrap;
+      transition: width 0.5s ease;
+    }
+
+    .bar.negative {
+      background-color: var(--negative);
+      width: 100% !important;
+    }
+
+    .bar.overflow {
+      background-color: var(--overflow);
+    }
+
+    .historique {
+      font-size: 0.9rem;
+      color: #555;
+      display: none;
+    }
+
+    .classement {
+      text-align: center;
+    }
+
+    .podium {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 1rem;
+      margin-top: 2rem;
+      animation: pop 1s ease-in-out;
+    }
+
+    .podium .step {
+      width: 80px;
+      border-radius: 10px 10px 0 0;
+      background-color: var(--primary);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      padding: 0.5rem;
+    }
+
+    .step:nth-child(1) { height: 100px; background: silver; }
+    .step:nth-child(2) { height: 130px; background: gold; }
+    .step:nth-child(3) { height: 90px; background: #cd7f32; }
+
+    @keyframes pop {
+      from { transform: scale(0.7); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    @media (max-width: 600px) {
+      .player-line {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      input[type="text"],
+      input[type="number"],
+      input.tour {
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>🎲 Scoreur de Jeu</h1>
+  <div class="section" id="jeu">
+    <div class="settings">
+      <label for="scoreMax">Score maximum à atteindre :</label>
+      <input id="scoreMax" type="number" value="100" />
+      <div><strong>Tour :</strong> <span id="tourDisplay">1</span></div>
     </div>
-    <div class="bar-container"><div class="bar" style="width: 0%;">0</div></div>
-    <div class="historique"></div>
-  `;
-  container.appendChild(div);
-  renderBars();
-}
+
+    <div class="buttons">
+      <button onclick="addPlayer()">➕ Ajouter un joueur</button>
+      <button onclick="updateScores()">✅ Valider tour</button>
+      <button onclick="nextTour()">🔁 +1 tour</button>
+      <button onclick="toggleHistorique()">👁️ Historique</button>
+      <button onclick="showPodium()">🏁 Voir classement</button>
+      <button onclick="finishGame()">🎉 Terminer la partie</button>
+      <button onclick="resetScores()">🔄 Réinitialiser</button>
+      <button onclick="clearAll()">🗑️ Supprimer tous</button>
+    </div>
+
+    <div id="players"></div>
+  </div>
+
+  <div class="section classement" id="podium" style="display: none;">
+    <div class="buttons">
+      <button onclick="returnToGame()">🔙 Retour</button>
+      <button onclick="resetScores()">🔄 Réinitialiser</button>
+    </div>
+    <div id="classementContent"></div>
+    <div id="podiumVisual"></div>
+  </div>
+
+  <script>
+    let currentTour = 1;
+    let showHistory = false;
+
+    function addPlayer() {
+      const container = document.getElementById('players');
+      const div = document.createElement('div');
+      div.className = 'player-entry';
+      div.innerHTML = `
+        <div class="player-line">
+          <input type="text" placeholder="Nom du joueur" />
+          <input type="number" placeholder="Score total" value="0" />
+          <input type="text" class="tour" placeholder="Calcul du tour (ex: 5+5-2)" />
+        </div>
+        <div class="historique"></div>
+      `;
+      container.appendChild(div);
+    }
+
+    function updateScores() {
+      const entries = Array.from(document.querySelectorAll('.player-entry'));
+      entries.forEach(entry => {
+        const scoreInput = entry.querySelector('input[type="number"]');
+        const tourInput = entry.querySelector('input.tour');
+        const historyDiv = entry.querySelector('.historique');
+
+        let addition = 0;
+        try {
+          addition = eval(tourInput.value.replace(/[^-()\d/*+.]/g, ''));
+        } catch {
+          alert("Erreur dans le calcul pour un joueur.");
+          return;
+        }
+
+        const newScore = parseFloat(scoreInput.value) + addition;
+        scoreInput.value = newScore;
+        tourInput.value = "";
+
+        if (!entry.dataset.history) entry.dataset.history = "[]";
+        const history = JSON.parse(entry.dataset.history);
+        history.push({ tour: currentTour, valeur: addition });
+        entry.dataset.history = JSON.stringify(history);
+
+        updateHistorique(entry);
+      });
+
+      currentTour++;
+      document.getElementById('tourDisplay').textContent = currentTour;
+
+      const playerContainer = document.getElementById('players');
+      const sorted = Array.from(playerContainer.children).sort((a, b) => {
+        const scoreA = parseFloat(a.querySelector('input[type="number"]').value);
+        const scoreB = parseFloat(b.querySelector('input[type="number"]').value);
+        return scoreB - scoreA;
+      });
+      sorted.forEach(el => playerContainer.appendChild(el));
+    }
+
+    function updateHistorique(entry) {
+      const historyDiv = entry.querySelector('.historique');
+      const history = JSON.parse(entry.dataset.history || "[]");
+      historyDiv.style.display = showHistory ? "block" : "none";
+
+      if (showHistory) {
+        let html = '<strong>Historique :</strong><br>';
+        history.forEach(h => {
+          html += `Tour ${h.tour} : ${h.valeur}<br>`;
+        });
+        historyDiv.innerHTML = html;
+      }
+    }
+
+    function toggleHistorique() {
+      showHistory = !showHistory;
+      document.querySelectorAll('.player-entry').forEach(updateHistorique);
+    }
+
+    function nextTour() {
+      currentTour++;
+      document.getElementById('tourDisplay').textContent = currentTour;
+    }
+
+    function updateBars() {
+      const entries = Array.from(document.querySelectorAll('.player-entry'));
+      const players = entries.map(entry => {
+        const name = entry.querySelector('input[type="text"]').value.trim();
+        const score = parseFloat(entry.querySelector('input[type="number"]').value);
+        return name && !isNaN(score) ? { name, score } : null;
+      }).filter(Boolean);
+
+      if (players.length === 0) return;
+
+      const maxTarget = parseInt(document.getElementById('scoreMax').value) || 100;
+      players.sort((a, b) => b.score - a.score);
+
+      const classement = document.getElementById('classementContent');
+      let html = '<h2>📊 Classement</h2>';
+      players.forEach(player => {
+        let width = (player.score / maxTarget) * 100;
+        let barClass = 'bar';
+        if (player.score < 0) {
+          barClass += ' negative';
+          width = 100;
+        } else if (player.score > maxTarget) {
+          barClass += ' overflow';
+          width = 100;
+        }
+        html += `
+          <div class="bar-container">
+            <div class="${barClass}" style="width: ${width}%">
+              ${player.name} - ${player.score} pts
+            </div>
+          </div>
+        `;
+      });
+      classement.innerHTML = html;
+    }
+
+    function showPodium() {
+      updateBars();
+      document.getElementById('jeu').style.display = 'none';
+      document.getElementById('podium').style.display = 'block';
+    }
+
+    function finishGame() {
+      showPodium();
+      const entries = Array.from(document.querySelectorAll('.player-entry'));
+      const players = entries.map(entry => {
+        const name = entry.querySelector('input[type="text"]').value.trim();
+        const score = parseFloat(entry.querySelector('input[type="number"]').value);
+        return name && !isNaN(score) ? { name, score } : null;
+      }).filter(Boolean);
+      players.sort((a, b) => b.score - a.score);
+      const top3 = players.slice(0, 3);
+
+      const podiumDiv = document.getElementById('podiumVisual');
+      podiumDiv.innerHTML = `
+        <h2>🏆 Podium Final</h2>
+        <div class="podium">
+          <div class="step">${top3[1]?.name || '-'}<br>${top3[1]?.score || ''}</div>
+          <div class="step">${top3[0]?.name || '-'}<br>${top3[0]?.score || ''}</div>
+          <div class="step">${top3[2]?.name || '-'}<br>${top3[2]?.score || ''}</div>
+        </div>
+      `;
+    }
+
+    function returnToGame() {
+      document.getElementById('jeu').style.display = 'block';
+      document.getElementById('podium').style.display = 'none';
+    }
+
+    function resetScores() {
+      const entries = document.querySelectorAll('.player-entry');
+      entries.forEach(entry => {
+        entry.querySelector('input[type="number"]').value = '0';
+        entry.dataset.history = "[]";
+        updateHistorique(entry);
+        entry.querySelector('input.tour').value = '';
+      });
+      currentTour = 1;
+      document.getElementById('tourDisplay').textContent = '1';
+    }
+
+    function clearAll() {
+      document.getElementById('players').innerHTML = '';
+      document.getElementById('classementContent').innerHTML = '';
+      document.getElementById('podiumVisual').innerHTML = '';
+    }
+  </script>
+</body>
+</html>
 function updateScores() {
   // ... (votre logique existante)
   renderBars(); // <--- à ajouter
